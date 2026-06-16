@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../riwayat/expense_history_page.dart';
 import '../bulan/bulan_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class DashboardScreen extends StatefulWidget {
   final Function(int)? onTabChanged; // 1.variabel callback ini
@@ -16,10 +17,11 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color textDark = const Color(0xFF333333);
-  final Color textGray = const Color(0xFF8B8B8B);
+  // ubah mode gelap - warna dasar menggunakan theme manager global
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value);
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value);
+  Color get textDark => ThemeColors.getTextColor(isDarkModeNotifier.value);
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value);
 
   // --- VARIABEL DINAMIS ---
   bool _isLoading = true;
@@ -111,78 +113,83 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // TAMPILAN UI (TIDAK ADA DESAIN YANG BERUBAH)
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      appBar: _buildAppBar(),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: primaryBrown))
-          // PULL-TO-REFRESH 
-          : RefreshIndicator(
-              onRefresh: _initDataDinamis, // Memanggil ulang fungsi pengambilan data
-              color: primaryBrown,
-              backgroundColor: Colors.white,
-              child: SingleChildScrollView(
-                // physics ini WAJIB agar layar tetap bisa ditarik ke bawah walau transaksinya masih kosong
-                physics: const AlwaysScrollableScrollPhysics(), 
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCalendarCard(),
-                    const SizedBox(height: 20),
-                    _buildSummaryCard(),
-                    const SizedBox(height: 25),
-                    _buildActivityHeader(),
-                    const SizedBox(height: 15),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          appBar: _buildAppBar(),
+          body: _isLoading
+              ? Center(child: CircularProgressIndicator(color: primaryBrown))
+              // PULL-TO-REFRESH 
+              : RefreshIndicator(
+                  onRefresh: _initDataDinamis, // Memanggil ulang fungsi pengambilan data
+                  color: primaryBrown,
+                  backgroundColor: isDarkMode ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+                  child: SingleChildScrollView(
+                    // physics ini WAJIB agar layar tetap bisa ditarik ke bawah walau transaksinya masih kosong
+                    physics: const AlwaysScrollableScrollPhysics(), 
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCalendarCard(),
+                        const SizedBox(height: 20),
+                        _buildSummaryCard(),
+                        const SizedBox(height: 25),
+                        _buildActivityHeader(),
+                        const SizedBox(height: 15),
 
-                    // LOOPING AKTIVITAS TERKINI DARI DATABASE
-                    if (_aktivitasTerkini.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text(
-                            "Belum ada transaksi bulan ini",
-                            style: TextStyle(color: Colors.black38),
-                          ),
-                        ),
-                      )
-                    else
-                      ..._aktivitasTerkini.map((item) {
-                        int jumlahUang = double.tryParse(item['jumlah'].toString())?.toInt() ?? 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 15),
-                          child: _buildActivityItem(
-                            title: item['keterangan'] ?? 'Transaksi',
-                            subtitle:
-                                '${item['nama_kategori'] ?? 'Lainnya'} • ${item['tanggal_transaksi'].toString().substring(0, 10)}',
-                            amount: '-Rp ${_formatRupiah(jumlahUang)}',
-                            status: 'SUCCESS', 
-                            iconData: Icons.receipt_long, 
-                            iconBgColor: const Color(0xFFF3DDC9),
-                            iconColor: primaryBrown,
-                          ),
-                        );
-                      }),
+                        // LOOPING AKTIVITAS TERKINI DARI DATABASE
+                        if (_aktivitasTerkini.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Text(
+                                "Belum ada transaksi bulan ini",
+                                style: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38), // ubah mode gelap
+                              ),
+                            ),
+                          )
+                        else
+                          ..._aktivitasTerkini.map((item) {
+                            int jumlahUang = double.tryParse(item['jumlah'].toString())?.toInt() ?? 0;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 15),
+                              child: _buildActivityItem(
+                                title: item['keterangan'] ?? 'Transaksi',
+                                subtitle:
+                                    '${item['nama_kategori'] ?? 'Lainnya'} • ${item['tanggal_transaksi'].toString().substring(0, 10)}',
+                                amount: '-Rp ${_formatRupiah(jumlahUang)}',
+                                status: 'SUCCESS', 
+                                iconData: Icons.receipt_long, 
+                                iconBgColor: isDarkMode ? const Color(0xFF3E3A36) : const Color(0xFFF3DDC9), // ubah mode gelap
+                                iconColor: primaryBrown,
+                              ),
+                            );
+                          }),
 
-                    const SizedBox(height: 100),
-                  ],
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-      // BAGIAN FLOATING ACTION BUTTON 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Jika fungsi pemindah tab ada, perintahkan pindah ke indeks 1 (Tab Bulan)
-          if (widget.onTabChanged != null) {
-            widget.onTabChanged!(1); 
-          }
-        },
-        backgroundColor: primaryBrown,
-        elevation: 4,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          // BAGIAN FLOATING ACTION BUTTON 
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              // Jika fungsi pemindah tab ada, perintahkan pindah ke indeks 1 (Tab Bulan)
+              if (widget.onTabChanged != null) {
+                widget.onTabChanged!(1); 
+              }
+            },
+            backgroundColor: primaryBrown,
+            elevation: 4,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, color: Colors.white, size: 30),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
+      }
     );
   }
 
@@ -241,12 +248,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildCalendarCard() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
         borderRadius: BorderRadius.circular(25),
-        boxShadow: [
+        boxShadow: isDark ? [] : [ // ubah mode gelap
           BoxShadow(
             color: Colors.black.withValues(alpha:0.03),
             blurRadius: 10,
@@ -358,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(
                 color: isActive
                     ? Colors.white
-                    : (isFaded ? Colors.black26 : Colors.black87),
+                    : (isFaded ? (isDarkModeNotifier.value ? Colors.white24 : Colors.black26) : (isDarkModeNotifier.value ? Colors.white70 : Colors.black87)), // ubah mode gelap
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
                 fontSize: 13,
               ),
@@ -468,12 +476,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color iconBgColor,
     required Color iconColor,
   }) {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
+        boxShadow: isDark ? [] : [ // ubah mode gelap
           BoxShadow(
             color: Colors.black.withValues(alpha:0.02),
             blurRadius: 8,
@@ -498,10 +507,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87, // ubah mode gelap
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -516,10 +525,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 amount,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: Colors.black87,
+                  color: isDark ? Colors.white : Colors.black87, // ubah mode gelap
                 ),
               ),
               const SizedBox(height: 4),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pilih_tanggal_screen.dart';
 import '../profile/profile_screen.dart'; 
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class BulanScreen extends StatefulWidget {
   const BulanScreen({super.key});
@@ -10,14 +11,12 @@ class BulanScreen extends StatefulWidget {
 }
 
 class _BulanScreenState extends State<BulanScreen> {
-  // Warna sesuai desain Figma kamu
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color selectedTileBg = const Color(
-    0xFF3D3D3D,
-  ); // Warna gelap untuk bulan terpilih
-  final Color unselectedTileBg = Colors.white;
-  final Color textGray = const Color(0xFF8B8B8B);
+  // ubah mode gelap - warna dasar menggunakan theme manager global
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value);
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value);
+  Color get selectedTileBg => isDarkModeNotifier.value ? const Color(0xFFB89381) : const Color(0xFF3D3D3D);
+  Color get unselectedTileBg => isDarkModeNotifier.value ? const Color(0xFF292524) : Colors.white;
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value);
 
   // State Real-time
   late int _selectedYear;
@@ -49,21 +48,24 @@ class _BulanScreenState extends State<BulanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      appBar: _buildAppBar(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          appBar: _buildAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 25),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Pilih Bulan',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E1E1E),
+                color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E), // ubah mode gelap
                 letterSpacing: -0.5,
               ),
             ),
@@ -85,6 +87,8 @@ class _BulanScreenState extends State<BulanScreen> {
           ],
         ),
       ),
+        );
+      },
     );
   }
 
@@ -133,10 +137,10 @@ class _BulanScreenState extends State<BulanScreen> {
         const SizedBox(width: 20),
         Text(
           '$_selectedYear',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: isDarkModeNotifier.value ? Colors.white : Colors.black87, // ubah mode gelap
           ),
         ),
         const SizedBox(width: 20),
@@ -190,25 +194,27 @@ class _BulanScreenState extends State<BulanScreen> {
                 35,
               ), // Pill-shape rounded sesuai figma
               boxShadow: isSelected
-                  ? [
+                  ? (isDarkModeNotifier.value ? [] : [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
-                    ]
-                  : [
+                    ])
+                  : (isDarkModeNotifier.value ? [] : [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 5,
                       ),
-                    ],
+                    ]), // ubah mode gelap
             ),
             child: Center(
               child: Text(
                 _bulanNames[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black87,
+                  color: isSelected 
+                      ? (isDarkModeNotifier.value ? const Color(0xFF1C1917) : Colors.white) 
+                      : (isDarkModeNotifier.value ? Colors.white70 : Colors.black87), // ubah mode gelap
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),

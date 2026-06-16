@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
-import 'notification_settings_screen.dart';
+
 
 import 'help_center_screen.dart';
 import 'about_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,10 +18,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  
-  bool _isDarkMode = false;
+  // ubah mode gelap - warna dasar menggunakan theme manager global
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value);
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value);
   
   // --- VARIABEL DINAMIS ---
   String _nama = "Memuat...";
@@ -48,14 +48,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _email = data['email'] ?? "user@dudububu.com";
           });
         } else {
-          setState(() { _nama = "Pengguna"; _email = "Gagal memuat email"; });
+          setState(() { 
+            _nama = "Pengguna"; 
+            _email = "Gagal memuat email"; 
+          });
         }
       } else {
         // PENGAMAN: Kalau userId terhapus/kosong, jangan stuck di Memuat
-        setState(() { _nama = "Sesi Habis"; _email = "Silakan login ulang"; });
+        setState(() { 
+          _nama = "Sesi Habis"; 
+          _email = "Silakan login ulang"; 
+        });
       }
     } catch (e) {
-      setState(() { _nama = "Mode Offline"; _email = "Periksa koneksi internet"; });
+      setState(() { 
+        _nama = "Mode Offline"; 
+        _email = "Periksa koneksi internet"; 
+      });
     }
   }
 
@@ -64,9 +73,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDarkModeNotifier.value ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Keluar Akun', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Apakah Anda yakin ingin keluar dari DubuNote?'),
+        title: Text('Keluar Akun', style: TextStyle(fontWeight: FontWeight.bold, color: isDarkModeNotifier.value ? Colors.white : Colors.black87)), // ubah mode gelap
+        content: Text('Apakah Anda yakin ingin keluar dari DubuNote?', style: TextStyle(color: isDarkModeNotifier.value ? Colors.white70 : Colors.black87)), // ubah mode gelap
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -94,7 +104,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
       backgroundColor: bgBeige,
       appBar: AppBar(
         backgroundColor: bgBeige,
@@ -134,8 +147,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 110,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFF3DDC9), width: 3),
-                              boxShadow: [
+                              border: Border.all(color: isDarkMode ? const Color(0xFF3E3A36) : const Color(0xFFF3DDC9), width: 3), // ubah mode gelap
+                              boxShadow: isDarkMode ? [] : [ // ubah mode gelap
                                 BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 12, offset: const Offset(0, 6)),
                               ],
                             ),
@@ -146,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(
-                                    color: const Color(0xFFF3DDC9),
+                                    color: isDarkMode ? const Color(0xFF3E3A36) : const Color(0xFFF3DDC9), // ubah mode gelap
                                     child: Icon(Icons.person, color: primaryBrown, size: 50),
                                   );
                                 },
@@ -167,12 +180,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 16),
                       Text(
                         _nama,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A), letterSpacing: -0.5),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A), letterSpacing: -0.5), // ubah mode gelap
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _email,
-                        style: const TextStyle(fontSize: 14, color: Colors.black54),
+                        style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white70 : Colors.black54), // ubah mode gelap
                       ),
                     ],
                   ),
@@ -214,37 +227,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildMenuSectionTitle("PREFERENSI"),
                 const SizedBox(height: 8),
                 _buildMenuCard([
-                  _buildMenuTile(
-                    icon: Icons.notifications_none_outlined, 
-                    title: "Notifikasi", 
-                    onTap: () {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()),
-                        );
-                       },       
-                    ),
-                  _buildDivider(),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     child: Row(
                       children: [
                         Icon(Icons.dark_mode_outlined, color: primaryBrown, size: 22),
                         const SizedBox(width: 16),
-                        const Expanded(child: Text("Tampilan (Mode Gelap)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Color(0xFF1A1A1A)))),
+                        Expanded(child: Text("Tampilan (Mode Gelap)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A)))), // ubah mode gelap
                         Transform.scale(
                           scale: 0.8,
                           child: Switch(
-                            value: _isDarkMode,
+                            value: isDarkMode,
                             activeColor: primaryBrown,
-                            onChanged: (value) => setState(() => _isDarkMode = value),
+                            onChanged: (value) { // ubah mode gelap
+                              saveGlobalTheme(value);
+                            },
                           ),
                         ),
                       ],
                     ),
                   ),
-                  _buildDivider(),
-                  _buildMenuTile(icon: Icons.language_outlined, title: "Bahasa", trailingText: "Indonesia", onTap: () {}),
                 ]),
 
                 const SizedBox(height: 24),
@@ -282,8 +284,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ElevatedButton(
                     onPressed: _logout,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFF0F0),
-                      foregroundColor: Colors.red.shade600,
+                      backgroundColor: isDarkMode ? const Color(0xFF3D1F1F) : const Color(0xFFFFF0F0), // ubah mode gelap
+                      foregroundColor: Colors.red.shade400, // ubah mode gelap
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     ),
@@ -303,6 +305,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+        );
+      },
     );
   }
 
@@ -325,9 +329,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkModeNotifier.value ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
         borderRadius: BorderRadius.circular(24.0),
-        boxShadow: [
+        boxShadow: isDarkModeNotifier.value ? [] : [ // ubah mode gelap
           BoxShadow(color: Colors.black.withValues(alpha:0.015), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
@@ -345,10 +349,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Icon(icon, color: primaryBrown, size: 22),
             const SizedBox(width: 16),
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Color(0xFF1A1A1A)))),
-            if (trailingText != null) Text(trailingText, style: TextStyle(fontSize: 13, color: Colors.black.withValues(alpha:0.4), fontWeight: FontWeight.w500)),
+            Expanded(child: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: isDarkModeNotifier.value ? Colors.white : const Color(0xFF1A1A1A)))), // ubah mode gelap
+            if (trailingText != null) Text(trailingText, style: TextStyle(fontSize: 13, color: isDarkModeNotifier.value ? Colors.white54 : Colors.black.withValues(alpha:0.4), fontWeight: FontWeight.w500)), // ubah mode gelap
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, color: Colors.black.withValues(alpha:0.25), size: 18),
+            Icon(Icons.chevron_right, color: isDarkModeNotifier.value ? Colors.white30 : Colors.black.withValues(alpha:0.25), size: 18), // ubah mode gelap
           ],
         ),
       ),
@@ -356,6 +360,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDivider() {
-    return const Divider(color: Color(0xFFF0F0F0), height: 1, thickness: 1, indent: 16, endIndent: 16);
+    return Divider(color: isDarkModeNotifier.value ? const Color(0xFF3E3B39) : const Color(0xFFF0F0F0), height: 1, thickness: 1, indent: 16, endIndent: 16); // ubah mode gelap
   }
 }

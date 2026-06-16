@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../profile/profile_screen.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class RefleksiScreen extends StatefulWidget {
   const RefleksiScreen({super.key});
@@ -12,9 +13,10 @@ class RefleksiScreen extends StatefulWidget {
 }
 
 class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProviderStateMixin {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color textGray = const Color(0xFF8B8B8B);
+  // ubah mode gelap - warna dasar menggunakan theme manager global
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value);
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value);
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value);
   
   bool _isLoading = true;
 
@@ -115,44 +117,50 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      appBar: _buildAppBar(),
-      body: _isLoading 
-        ? Center(child: CircularProgressIndicator(color: primaryBrown))
-        : FadeTransition(
-            opacity: _fadeAnimation,
-            // --- FITUR PULL-TO-REFRESH ---
-            child: RefreshIndicator(
-              onRefresh: _tarikDataRefleksi, 
-              color: primaryBrown,
-              backgroundColor: Colors.white,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(), // Wajib agar bisa ditarik
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    const Text('Refleksi Keuangan', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E), letterSpacing: -0.5)),
-                    const SizedBox(height: 8),
-                    Text('Wawasan mendalam mengenai perjalanan finansial\nAnda.', style: TextStyle(color: textGray, fontSize: 14, height: 1.5)),
-                    const SizedBox(height: 30),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          appBar: _buildAppBar(),
+          body: _isLoading 
+            ? Center(child: CircularProgressIndicator(color: primaryBrown))
+            : FadeTransition(
+                opacity: _fadeAnimation,
+                // --- FITUR PULL-TO-REFRESH ---
+                child: RefreshIndicator(
+                  onRefresh: _tarikDataRefleksi, 
+                  color: primaryBrown,
+                  backgroundColor: isDarkMode ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(), // Wajib agar bisa ditarik
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Text('Refleksi Keuangan', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E), letterSpacing: -0.5)), // ubah mode gelap
+                        const SizedBox(height: 8),
+                        Text('Wawasan mendalam mengenai perjalanan finansial\nAnda.', style: TextStyle(color: textGray, fontSize: 14, height: 1.5)),
+                        const SizedBox(height: 30),
 
-                    _buildInsightCard(),
-                    const SizedBox(height: 20),
-                    _buildDailySummaryCard(),
-                    const SizedBox(height: 20),
-                    _buildMonthlySummaryCard(),
-                    const SizedBox(height: 20),
-                    _buildYearlyProjectionCard(),
-                    const SizedBox(height: 100), // Spasi Navbar
-                  ],
-                ),
+                        _buildInsightCard(),
+                        const SizedBox(height: 20),
+                        _buildDailySummaryCard(),
+                        const SizedBox(height: 20),
+                        _buildMonthlySummaryCard(),
+                        const SizedBox(height: 20),
+                        _buildYearlyProjectionCard(),
+                        const SizedBox(height: 100), // Spasi Navbar
+                      ],
+                    ),
+                  ),
+                ), 
               ),
-            ), 
-          ),
+        );
+      }
     );
   }
 
@@ -207,16 +215,21 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
   }
 
   Widget _buildDailySummaryCard() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)]),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)], // ubah mode gelap
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Ringkasan Harian', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text('Ringkasan Harian', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
               Icon(Icons.calendar_month_outlined, color: textGray, size: 20),
             ],
           ),
@@ -230,7 +243,7 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
                 children: [
                   Text('Total Hari Ini', style: TextStyle(color: textGray, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 5),
-                  Text('Rp ${_formatRupiah(_totalHariIni)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text('Rp ${_formatRupiah(_totalHariIni)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
                 ],
               ),
               Column(
@@ -238,7 +251,7 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
                 children: [
                   Text('Kemarin', style: TextStyle(color: textGray, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 5),
-                  Text('Rp ${_formatRupiah(_totalKemarin)}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)),
+                  Text('Rp ${_formatRupiah(_totalKemarin)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black54)), // ubah mode gelap
                 ],
               ),
             ],
@@ -250,16 +263,21 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
   }
 
   Widget _buildMonthlySummaryCard() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)]),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)], // ubah mode gelap
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Ringkasan Bulanan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text('Ringkasan Bulanan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
               Icon(Icons.calendar_month_outlined, color: textGray, size: 20),
             ],
           ),
@@ -268,7 +286,7 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
           const SizedBox(height: 5),
           Row(
             children: [
-              Text('Rp ${_formatRupiah(_totalBulanIni)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text('Rp ${_formatRupiah(_totalBulanIni)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
               
             ],
           ),
@@ -277,14 +295,14 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Bulan Lalu', style: TextStyle(color: textGray, fontSize: 12, fontWeight: FontWeight.w600)),
-              Text('Rp ${_formatRupiah(_totalBulanLalu)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text('Rp ${_formatRupiah(_totalBulanLalu)}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black87)), // ubah mode gelap
             ],
           ),
           const SizedBox(height: 10),
           // Progress Bar
           Stack(
             children: [
-              Container(height: 6, width: double.infinity, decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10))),
+              Container(height: 6, width: double.infinity, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10))), // ubah mode gelap
               Container(height: 6, width: MediaQuery.of(context).size.width * 0.7, decoration: BoxDecoration(color: primaryBrown, borderRadius: BorderRadius.circular(10))),
             ],
           )
@@ -294,23 +312,28 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
   }
 
  Widget _buildYearlyProjectionCard() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)]),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)], // ubah mode gelap
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Proyeksi Tahunan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text('Proyeksi Tahunan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
               Icon(Icons.show_chart, color: textGray, size: 20),
             ],
           ),
           const SizedBox(height: 20),
           Text('Total Pengeluaran Tahun Berjalan', style: TextStyle(color: textGray, fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 5),
-          Text('Rp ${_formatRupiah(_totalTahunIni)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+          Text('Rp ${_formatRupiah(_totalTahunIni)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
           const SizedBox(height: 25),
           
           // --- GRAFIK DINAMIS 12 BULAN CERDAS ---
@@ -327,7 +350,7 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
               return Container(
                 height: 120, // Kunci utama biar grafik gak gepeng
                 padding: const EdgeInsets.only(top: 20),
-                decoration: BoxDecoration(color: const Color(0xFFF9F9F9), borderRadius: BorderRadius.circular(15)),
+                decoration: BoxDecoration(color: isDark ? const Color(0xFF1E1A17) : const Color(0xFFF9F9F9), borderRadius: BorderRadius.circular(15)), // ubah mode gelap
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,

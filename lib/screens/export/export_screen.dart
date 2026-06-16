@@ -8,6 +8,7 @@ import '../profile/profile_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:flutter/material.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class ExportScreen extends StatefulWidget {
   const ExportScreen({super.key});
@@ -17,10 +18,11 @@ class ExportScreen extends StatefulWidget {
 }
 
 class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderStateMixin {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color textGray = const Color(0xFF8B8B8B);
-  final Color cardBg = const Color(0xFFF5F5F5);
+  // ubah mode gelap - warna dasar menggunakan theme manager global
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value);
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value);
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value);
+  Color get cardBg => isDarkModeNotifier.value ? const Color(0xFF1E1A17) : const Color(0xFFF5F5F5);
 
   // --- 1. VARIABEL STATE UNTUK DATA DINAMIS ---
   String _selectedRentang = 'Bulanan'; 
@@ -266,26 +268,29 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
   }
 
   // BAGIAN UI (TIDAK ADA DESAIN YANG DIUBAH, HANYA DITAMBAH ONTAP)
- @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      appBar: _buildAppBar(),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        // --- FITUR PULL-TO-REFRESH ---
-        child: RefreshIndicator(
-          onRefresh: _refreshState, // Memanggil fungsi reset
-          color: primaryBrown,
-          backgroundColor: Colors.white,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(), // Wajib agar bisa ditarik
-            padding: const EdgeInsets.symmetric(horizontal: 25),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          appBar: _buildAppBar(),
+          body: FadeTransition(
+            opacity: _fadeAnimation,
+            // --- FITUR PULL-TO-REFRESH ---
+            child: RefreshIndicator(
+              onRefresh: _refreshState, // Memanggil fungsi reset
+              color: primaryBrown,
+              backgroundColor: isDarkMode ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(), // Wajib agar bisa ditarik
+                padding: const EdgeInsets.symmetric(horizontal: 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                const Text('Persiapkan Laporan Anda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E), letterSpacing: -0.5)),
+                 const SizedBox(height: 10),
+                Text('Persiapkan Laporan Anda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E), letterSpacing: -0.5)), // ubah mode gelap
                 const SizedBox(height: 8),
                 Text('Pilih rentang waktu, kategori, dan format file\nyang sesuai dengan kebutuhan pencatatan\nfinansial Anda.', style: TextStyle(color: textGray, fontSize: 13, height: 1.5)),
                 const SizedBox(height: 30),
@@ -295,7 +300,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
                 _buildKategoriSection(),
                 const SizedBox(height: 25),
 
-                const Text('Format Dokumen', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                Text('Format Dokumen', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black87)), // ubah mode gelap
                 const SizedBox(height: 15),
                 _buildFormatCard('PDF Laporan', 'Optimal untuk cetak', Icons.picture_as_pdf_outlined, 'PDF'),
                 const SizedBox(height: 15),
@@ -335,7 +340,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
                 child: ElevatedButton(
                   onPressed: _isSharing ? null : _prosesBagikan,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF3DDC9), 
+                    backgroundColor: isDarkMode ? const Color(0xFF3E3025) : const Color(0xFFF3DDC9), // ubah mode gelap
                     foregroundColor: primaryBrown, 
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     elevation: 0,
@@ -359,6 +364,8 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
         ), 
       ), 
     ); 
+      }
+    );
   }
 
   AppBar _buildAppBar() {
@@ -385,13 +392,14 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
   }
 
   Widget _buildRentangWaktuSection() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(25)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rentang Waktu', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+          Text('Rentang Waktu', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
           const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -412,14 +420,14 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white, 
+                  color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
                   borderRadius: BorderRadius.circular(15), 
-                  border: Border.all(color: Colors.grey.shade200)
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200) // ubah mode gelap
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_getDisplayDate(), style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text(_getDisplayDate(), style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13, fontWeight: FontWeight.w600)), // ubah mode gelap
                     Icon(Icons.calendar_today_outlined, color: textGray, size: 18),
                   ],
                 ),
@@ -433,6 +441,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
 
   Widget _buildPillButton(String text) {
     bool isSelected = _selectedRentang == text;
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return GestureDetector(
       onTap: () => setState(() => _selectedRentang = text),
       child: AnimatedContainer(
@@ -440,34 +449,39 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? primaryBrown : Colors.white,
+          color: isSelected ? primaryBrown : (isDark ? const Color(0xFF292524) : Colors.white), // ubah mode gelap
           borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected ? [BoxShadow(color: primaryBrown.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))] : [],
+          boxShadow: isSelected ? (isDark ? [] : [BoxShadow(color: primaryBrown.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))]) : [], // ubah mode gelap
         ),
-        child: Text(text, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.w600, fontSize: 12)),
+        child: Text(text, style: TextStyle(color: isSelected ? (isDark ? const Color(0xFF1C1917) : Colors.white) : (isDark ? Colors.white70 : Colors.black87), fontWeight: isSelected ? FontWeight.bold : FontWeight.w600, fontSize: 12)), // ubah mode gelap
       ),
     );
   }
 
   Widget _buildKategoriSection() {
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(25)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Kategori', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+          Text('Kategori', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
           const SizedBox(height: 15),
           // --- KOLOM KATEGORI INTERAKTIF ---
           GestureDetector(
             onTap: _pilihKategori, // Panggil menu kategori saat diklik
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.grey.shade200)),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
+                borderRadius: BorderRadius.circular(15), 
+                border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200) // ubah mode gelap
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_selectedKategori, style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(_selectedKategori, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13, fontWeight: FontWeight.w600)), // ubah mode gelap
                   Icon(Icons.keyboard_arrow_down_rounded, color: textGray, size: 22),
                 ],
               ),
@@ -480,6 +494,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
 
   Widget _buildFormatCard(String title, String subtitle, IconData icon, String formatType) {
     bool isSelected = _selectedFormat == formatType;
+    final isDark = isDarkModeNotifier.value; // ubah mode gelap
     return GestureDetector(
       onTap: () => setState(() => _selectedFormat = formatType),
       child: AnimatedContainer(
@@ -487,10 +502,10 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
           borderRadius: BorderRadius.circular(25),
           border: Border.all(color: isSelected ? primaryBrown : Colors.transparent, width: 1.5),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)],
+          boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, spreadRadius: 2)], // ubah mode gelap
         ),
         child: Stack(
           children: [
@@ -503,7 +518,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
                     child: Icon(icon, color: primaryBrown, size: 24),
                   ),
                   const SizedBox(height: 12),
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
                   const SizedBox(height: 4),
                   Text(subtitle, style: TextStyle(color: textGray, fontSize: 11)),
                 ],

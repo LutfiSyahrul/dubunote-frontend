@@ -3,7 +3,11 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/main_layout.dart'; 
 import 'screens/scan/scan_detail_page.dart'; 
 
-void main() {
+import 'theme_manager.dart'; // ubah mode gelap
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // ubah mode gelap
+  await initGlobalTheme(); // ubah mode gelap
   runApp(const MyApp());
 }
 

@@ -378,7 +378,6 @@ class _TambahPengeluaranScreenState extends State<TambahPengeluaranScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // >>> PANGGIL FUNGSI TIPS DI SINI <<<
                       Text(
                         _getSavingTip(),
                         style: TextStyle(

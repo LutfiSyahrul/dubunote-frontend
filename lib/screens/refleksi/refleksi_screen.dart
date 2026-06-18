@@ -287,8 +287,25 @@ class _RefleksiScreenState extends State<RefleksiScreen> with SingleTickerProvid
           Row(
             children: [
               Text('Rp ${_formatRupiah(_totalBulanIni)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), // ubah mode gelap
+              
             ],
           ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Bulan Lalu', style: TextStyle(color: textGray, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text('Rp ${_formatRupiah(_totalBulanLalu)}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black87)), // ubah mode gelap
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Progress Bar
+          Stack(
+            children: [
+              Container(height: 6, width: double.infinity, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10))), // ubah mode gelap
+              Container(height: 6, width: MediaQuery.of(context).size.width * 0.7, decoration: BoxDecoration(color: primaryBrown, borderRadius: BorderRadius.circular(10))),
+            ],
+          )
         ],
       ),
     );

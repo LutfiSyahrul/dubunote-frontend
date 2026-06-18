@@ -1,7 +1,4 @@
-# Presentasi Analisis Aplikasi DubuNote
-Dokumen ini berisi jawaban detail dan teknis atas pertanyaan-pertanyaan seputar arsitektur serta implementasi fitur pada aplikasi **DubuNote** (Frontend Flutter & Backend Node.js).
----
-## Daftar Pertanyaan & Penjelasan Teknis
+
 ### 1. Bagaimana Mengetahui Setiap Tanggal pada Bulannya?
 Sistem kalender pada halaman beranda mendeteksi jumlah hari dan penataan tanggal dalam satu bulan secara dinamis menggunakan objek `DateTime` bawaan Dart di frontend:
 * **Mencari Jumlah Hari**: Diperoleh dengan memanggil parameter hari ke-0 pada bulan berikutnya.

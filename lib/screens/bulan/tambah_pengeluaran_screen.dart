@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'success_screen.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class TambahPengeluaranScreen extends StatefulWidget {
   final DateTime selectedDate;
@@ -16,10 +17,11 @@ class TambahPengeluaranScreen extends StatefulWidget {
 }
 
 class _TambahPengeluaranScreenState extends State<TambahPengeluaranScreen> {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color textGray = const Color(0xFF8B8B8B);
-  final Color cardBg = const Color(0xFFF5EFE9);
+  // ubah mode gelap - warna dasar dinamis berdasarkan theme manager
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value); // ubah mode gelap
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value); // ubah mode gelap
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value); // ubah mode gelap
+  Color get cardBg => isDarkModeNotifier.value ? const Color(0xFF292524) : const Color(0xFFF5EFE9); // ubah mode gelap
 
   final TextEditingController _nominalController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
@@ -143,291 +145,303 @@ class _TambahPengeluaranScreenState extends State<TambahPengeluaranScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      appBar: AppBar(
-        backgroundColor: bgBeige,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryBrown),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Tambahkan Pengeluaran',
-          style: TextStyle(
-            color: primaryBrown,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-
-            // --- HEADER NOMINAL ---
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getFormattedDate(),
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          appBar: AppBar(
+            backgroundColor: bgBeige,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: primaryBrown),
+              onPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(height: 20),
-            const Center(
-              child: Text(
-                'TOTAL NOMINAL',
-                style: TextStyle(
-                  color: Colors.black45,
-                  fontSize: 10,
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            // --- INPUT NOMINAL BESAR ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'Rp',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: primaryBrown,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IntrinsicWidth(
-                  child: TextField(
-                    controller: _nominalController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(
-                      fontSize: 55,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    // >>> TAMBAHKAN ONCHANGED INI <<<
-                    onChanged: (value) {
-                      String cleanText = value.replaceAll('.', '');
-                      int? val = int.tryParse(cleanText);
-                      if (val != null) {
-                        String formatted = val.toString().replaceAllMapped(
-                          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                          (Match m) => '${m[1]}.',
-                        );
-                        _nominalController.value = TextEditingValue(
-                          text: formatted,
-                          selection: TextSelection.collapsed(
-                            offset: formatted.length,
-                          ),
-                        );
-                      }
-                    },
-                    // ==============================
-                    decoration: const InputDecoration(
-                      hintText: '0',
-                      hintStyle: TextStyle(color: Colors.black26),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
-
-            // --- PILIH KATEGORI ---
-            const Text(
-              'Kategori',
+            title: Text(
+              'Tambahkan Pengeluaran',
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 15),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _kategoriList.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 2.2,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
-              ),
-              itemBuilder: (context, index) {
-                final cat = _kategoriList[index];
-                bool isSelected = _selectedCategoryId == cat['id'];
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedCategoryId = cat['id']),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFF3DDC9)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          cat['icon'],
-                          color: isSelected ? primaryBrown : Colors.black54,
-                          size: 22,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          cat['nama'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isSelected ? primaryBrown : Colors.black54,
-                            fontSize: 11,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 35),
-
-            // --- CATATAN ---
-            const Text(
-              'Catatan',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _catatanController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Tambahkan catatan opsional di\nsini...',
-                hintStyle: const TextStyle(color: Colors.black26, fontSize: 14),
-                filled: true,
-                fillColor: const Color(0xFFF6F6F6),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 25),
-
-            // --- SAVING TIP ---
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
                 color: primaryBrown,
-                borderRadius: BorderRadius.circular(20),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'SAVING TIP',
+            ),
+            centerTitle: false,
+            titleSpacing: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+
+                // --- HEADER NOMINAL ---
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _getFormattedDate(),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black54, // ubah mode gelap
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    'TOTAL NOMINAL',
                     style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 9,
+                      color: isDarkMode ? Colors.white70 : Colors.black45, // ubah mode gelap
+                      fontSize: 10,
                       letterSpacing: 1.5,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  // >>> PANGGIL FUNGSI TIPS DI SINI <<<
-                  Text(
-                    _getSavingTip(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      height: 1.5,
+                ),
+
+                // --- INPUT NOMINAL BESAR ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Rp',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: primaryBrown,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IntrinsicWidth(
+                      child: TextField(
+                        controller: _nominalController,
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(
+                          fontSize: 55,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black87, // ubah mode gelap
+                        ),
+                        // >>> TAMBAHKAN ONCHANGED INI <<<
+                        onChanged: (value) {
+                          String cleanText = value.replaceAll('.', '');
+                          int? val = int.tryParse(cleanText);
+                          if (val != null) {
+                            String formatted = val.toString().replaceAllMapped(
+                              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                              (Match m) => '${m[1]}.',
+                            );
+                            _nominalController.value = TextEditingValue(
+                              text: formatted,
+                              selection: TextSelection.collapsed(
+                                offset: formatted.length,
+                              ),
+                            );
+                          }
+                        },
+                        // ==============================
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          hintStyle: TextStyle(color: isDarkMode ? Colors.white24 : Colors.black26), // ubah mode gelap
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+
+                // --- PILIH KATEGORI ---
+                Text(
+                  'Kategori',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black87, // ubah mode gelap
+                  ),
+                ),
+                const SizedBox(height: 15),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _kategoriList.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 2.2,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                  ),
+                  itemBuilder: (context, index) {
+                    final cat = _kategoriList[index];
+                    bool isSelected = _selectedCategoryId == cat['id'];
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedCategoryId = cat['id']),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? (isDarkMode ? const Color(0xFF3E302A) : const Color(0xFFF3DDC9)) // ubah mode gelap
+                              : (isDarkMode ? const Color(0xFF292524) : Colors.white), // ubah mode gelap
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDarkMode ? Colors.transparent : Colors.black.withValues(alpha: 0.02), // ubah mode gelap
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              cat['icon'],
+                              color: isSelected ? primaryBrown : (isDarkMode ? Colors.white70 : Colors.black54), // ubah mode gelap
+                              size: 22,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              cat['nama'],
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: isSelected ? primaryBrown : (isDarkMode ? Colors.white70 : Colors.black54), // ubah mode gelap
+                                fontSize: 11,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 35),
+
+                // --- CATATAN ---
+                Text(
+                  'Catatan',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black87, // ubah mode gelap
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: _catatanController,
+                  maxLines: 3,
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black87, // ubah mode gelap
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Tambahkan catatan opsional di\nsini...',
+                    hintStyle: TextStyle(color: isDarkMode ? Colors.white24 : Colors.black26, fontSize: 14), // ubah mode gelap
+                    filled: true,
+                    fillColor: isDarkMode ? const Color(0xFF292524) : const Color(0xFFF6F6F6), // ubah mode gelap
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 120), // Spasi untuk tombol sticky di bawah
-          ],
-        ),
-      ),
+                ),
+                const SizedBox(height: 25),
 
-      // --- TOMBOL SIMPAN (STICKY DI BAWAH) ---
-      bottomSheet: Container(
-        color: bgBeige,
-        padding: const EdgeInsets.only(
-          left: 25,
-          right: 25,
-          bottom: 30,
-          top: 10,
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          height: 55,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _simpanKeDatabase,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryBrown,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              elevation: 0,
-            ),
-            child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                // --- SAVING TIP ---
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: primaryBrown,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
                       Text(
-                        'Simpan',
+                        'SAVING TIP',
                         style: TextStyle(
-                          fontSize: 16,
+                          color: isDarkMode ? const Color(0xFF1C1917).withValues(alpha: 0.7) : Colors.white70, // ubah mode gelap
+                          fontSize: 9,
+                          letterSpacing: 1.5,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // >>> PANGGIL FUNGSI TIPS DI SINI <<<
+                      Text(
+                        _getSavingTip(),
+                        style: TextStyle(
+                          color: isDarkMode ? const Color(0xFF1C1917) : Colors.white, // ubah mode gelap
+                          fontSize: 12,
+                          height: 1.5,
                         ),
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 120), // Spasi untuk tombol sticky di bawah
+              ],
+            ),
           ),
-        ),
-      ),
+
+          // --- TOMBOL SIMPAN (STICKY DI BAWAH) ---
+          bottomSheet: Container(
+            color: bgBeige,
+            padding: const EdgeInsets.only(
+              left: 25,
+              right: 25,
+              bottom: 30,
+              top: 10,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _simpanKeDatabase,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBrown,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: isDarkMode ? const Color(0xFF1C1917) : Colors.white) // ubah mode gelap
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: isDarkMode ? const Color(0xFF1C1917) : Colors.white, // ubah mode gelap
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Simpan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? const Color(0xFF1C1917) : Colors.white, // ubah mode gelap
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
   // Fungsi Tips Dinamis berdasarkan Kategori

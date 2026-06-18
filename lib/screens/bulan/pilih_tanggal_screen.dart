@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'tambah_pengeluaran_screen.dart';
+import '../../theme_manager.dart'; // ubah mode gelap
 
 class PilihTanggalScreen extends StatefulWidget {
   final int initialYear;
@@ -17,12 +18,11 @@ class PilihTanggalScreen extends StatefulWidget {
 }
 
 class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
-  final Color bgBeige = const Color(0xFFFDFBF8);
-  final Color primaryBrown = const Color(0xFF7A5B4C);
-  final Color textGray = const Color(0xFF8B8B8B);
-  final Color selectedCardBg = const Color(
-    0xFFF5EFE9,
-  ); // Krem muda untuk kartu bawah
+  // ubah mode gelap - warna dasar dinamis berdasarkan theme manager
+  Color get bgBeige => ThemeColors.getBgBeige(isDarkModeNotifier.value); // ubah mode gelap
+  Color get primaryBrown => ThemeColors.getPrimaryBrown(isDarkModeNotifier.value); // ubah mode gelap
+  Color get textGray => ThemeColors.getSubTextColor(isDarkModeNotifier.value); // ubah mode gelap
+  Color get selectedCardBg => isDarkModeNotifier.value ? const Color(0xFF292524) : const Color(0xFFF5EFE9); // ubah mode gelap
 
   late int _currentYear;
   late int _currentMonth;
@@ -88,113 +88,118 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgBeige,
-      // AppBar simpel tanpa Navbar
-      appBar: AppBar(
-        backgroundColor: bgBeige,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryBrown),
-          onPressed: () => Navigator.pop(context), // Tombol kembali
-        ),
-        title: Text(
-          'Pilih Tanggal',
-          style: TextStyle(
-            color: primaryBrown,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-            const Text(
+    return ValueListenableBuilder<bool>(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDarkMode, child) {
+        return Scaffold(
+          backgroundColor: bgBeige,
+          // AppBar simpel tanpa Navbar
+          appBar: AppBar(
+            backgroundColor: bgBeige,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: primaryBrown),
+              onPressed: () => Navigator.pop(context), // Tombol kembali
+            ),
+            title: Text(
               'Pilih Tanggal',
               style: TextStyle(
-                fontSize: 28,
+                color: primaryBrown,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E1E1E),
-                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Kapan transaksi ini dilakukan? Pilih satu hari untuk\nmelanjutkan.',
-              style: TextStyle(color: textGray, fontSize: 14, height: 1.5),
-            ),
-            const SizedBox(height: 30),
-
-            // --- KARTU KALENDER INTERAKTIF ---
-            _buildCalendarCard(),
-            const SizedBox(height: 30),
-
-            // --- KARTU TANGGAL TERPILIH ---
-            _buildSelectedDateCard(),
-            const SizedBox(height: 30),
-
-            // --- TOMBOL LANJUTKAN ---
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                onPressed: _selectedDay == null
-                    ? null // Tombol mati kalau belum pilih tanggal
-                    : () {
-                        // Menggabungkan tahun, bulan, hari menjadi objek DateTime
-                        DateTime dateToPass = DateTime(
-                          _currentYear,
-                          _currentMonth,
-                          _selectedDay!,
-                        );
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TambahPengeluaranScreen(
-                              selectedDate: dateToPass,
-                            ),
-                          ),
-                        );
-                        debugPrint(
-                          "Tanggal untuk DB: $_currentYear-$_currentMonth-$_selectedDay",
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBrown,
-                  disabledBackgroundColor: primaryBrown.withValues(alpha: 0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            centerTitle: false,
+            titleSpacing: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Text(
+                  'Pilih Tanggal',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : const Color(0xFF1E1E1E), // ubah mode gelap
+                    letterSpacing: -0.5,
                   ),
-                  elevation: 0,
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Lanjutkan',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                const SizedBox(height: 8),
+                Text(
+                  'Kapan transaksi ini dilakukan? Pilih satu hari untuk\nmelanjutkan.',
+                  style: TextStyle(color: textGray, fontSize: 14, height: 1.5),
+                ),
+                const SizedBox(height: 30),
+
+                // --- KARTU KALENDER INTERAKTIF ---
+                _buildCalendarCard(),
+                const SizedBox(height: 30),
+
+                // --- KARTU TANGGAL TERPILIH ---
+                _buildSelectedDateCard(),
+                const SizedBox(height: 30),
+
+                // --- TOMBOL LANJUTKAN ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: _selectedDay == null
+                        ? null // Tombol mati kalau belum pilih tanggal
+                        : () {
+                            // Menggabungkan tahun, bulan, hari menjadi objek DateTime
+                            DateTime dateToPass = DateTime(
+                              _currentYear,
+                              _currentMonth,
+                              _selectedDay!,
+                            );
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TambahPengeluaranScreen(
+                                  selectedDate: dateToPass,
+                                ),
+                              ),
+                            );
+                            debugPrint(
+                              "Tanggal untuk DB: $_currentYear-$_currentMonth-$_selectedDay",
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryBrown,
+                      disabledBackgroundColor: primaryBrown.withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
+                      elevation: 0,
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-                  ],
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Lanjutkan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -202,11 +207,11 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkModeNotifier.value ? const Color(0xFF292524) : Colors.white, // ubah mode gelap
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: isDarkModeNotifier.value ? Colors.transparent : Colors.black.withValues(alpha: 0.03), // ubah mode gelap
             blurRadius: 10,
             spreadRadius: 2,
           ),
@@ -272,8 +277,8 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
               (day) => Center(
                 child: Text(
                   day,
-                  style: const TextStyle(
-                    color: Color(0xFFD6C8BC),
+                  style: TextStyle(
+                    color: isDarkModeNotifier.value ? const Color(0xFFB89381).withValues(alpha: 0.7) : const Color(0xFFD6C8BC), // ubah mode gelap
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -384,7 +389,9 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
-                      : (isFaded ? Colors.black26 : Colors.black87),
+                      : (isFaded 
+                          ? (isDarkModeNotifier.value ? Colors.white24 : Colors.black26) // ubah mode gelap
+                          : (isDarkModeNotifier.value ? Colors.white : Colors.black87)), // ubah mode gelap
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -422,10 +429,10 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'TANGGAL TERPILIH',
                 style: TextStyle(
-                  color: Colors.black45,
+                  color: isDarkModeNotifier.value ? Colors.white70 : Colors.black45, // ubah mode gelap
                   fontSize: 10,
                   letterSpacing: 1.0,
                   fontWeight: FontWeight.bold,
@@ -434,8 +441,8 @@ class _PilihTanggalScreenState extends State<PilihTanggalScreen> {
               const SizedBox(height: 4),
               Text(
                 _getFormattedDate(),
-                style: const TextStyle(
-                  color: Colors.black87,
+                style: TextStyle(
+                  color: isDarkModeNotifier.value ? Colors.white : Colors.black87, // ubah mode gelap
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

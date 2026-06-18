@@ -49,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- AREA GESER (PAGEVIEW) ---
+            // AREA GESER (PAGEVIEW) 
             Expanded(
               flex: 4,
               child: PageView.builder(

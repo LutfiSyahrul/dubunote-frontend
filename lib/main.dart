@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/splash/splash_screen.dart'; 
 import 'screens/main_layout.dart'; 
 import 'screens/scan/scan_detail_page.dart'; 
+import 'screens/auth/login_screen.dart'; // keluar akun - import halaman login
 
 import 'theme_manager.dart'; // ubah mode gelap
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       title: 'DubuNote',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7A5B4C)), // Saya sesuaikan ke warna cokelat DubuNote
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7A5B4C)), 
         useMaterial3: true,
       ),
       home: const SplashScreen(), 
@@ -31,6 +32,9 @@ class MyApp extends StatelessWidget {
         
         // Rute untuk membuka halaman Review Detail Scan
         '/scan-detail': (context) => const ScanDetailPage(),
+
+        // keluar akun - tambahkan rute login agar fungsi logout berjalan
+        '/login': (context) => const LoginScreen(),
       },
     );
   }

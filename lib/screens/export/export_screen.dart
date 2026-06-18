@@ -147,7 +147,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
     );
   }
 
-  // --- FUNGSI UNDUH 
+  // FUNGSI UNDUH 
   void _prosesUnduh() async {
     setState(() => _isDownloading = true);
 
@@ -162,7 +162,7 @@ class _ExportScreenState extends State<ExportScreen> with SingleTickerProviderSt
 
       // 1. Tembak API Node.js
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/api/transaksi/export'), // Sesuaikan IP jika pakai device fisik
+        Uri.parse('http://10.0.2.2:3000/api/transaksi/export'), 
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'pengguna_id': userId,

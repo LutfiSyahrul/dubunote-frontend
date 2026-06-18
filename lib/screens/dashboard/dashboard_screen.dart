@@ -110,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // TAMPILAN UI (TIDAK ADA DESAIN YANG BERUBAH)
+  // TAMPILAN UI DASHBOARD
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -276,14 +276,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           
           const SizedBox(height: 20),
-          // Memanggil fungsi pembuat kalender dinamis
           Table(children: _generateDynamicCalendar()),
         ],
       ),
     );
   }
 
-  // LOGIKA KALENDER REAL-TIME (SUNDAY START) ---
+  // LOGIKA KALENDER REAL-TIME (SUNDAY START) 
   List<TableRow> _generateDynamicCalendar() {
     List<TableRow> rows = [];
     DateTime now = DateTime.now();
@@ -342,7 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return rows;
   }
 
-  // --- PEMBUAT BARIS KALENDER ---
+  // PEMBUAT BARIS KALENDER
   TableRow _buildDynamicCalendarRow(
     List<String> days,
     List<bool> isFadedList,
@@ -400,7 +399,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 25),
           
-          // --- GRAFIK DINAMIS CERDAS ---
+          // GRAFIK DINAMIS CERDAS 
           LayoutBuilder(
             builder: (context, constraints) {
               // 1. Logika Proporsi Otomatis (Cari nilai tertinggi bulan ini)

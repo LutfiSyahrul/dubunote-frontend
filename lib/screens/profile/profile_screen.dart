@@ -88,10 +88,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () async {
+              // keluar akun - hapus sesi/preferensi pengguna dari memori lokal
               final prefs = await SharedPreferences.getInstance();
               await prefs.clear(); 
               
               if (mounted) {
+                // keluar akun - arahkan pengguna kembali ke halaman login dan hapus riwayat tumpukan halaman
                 Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               }
             },

@@ -82,7 +82,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
     }
   }
 
-  // --- FUNGSI UTAMA: JEPRET & UPLOAD KE NODE.JS ---
+  // FUNGSI UTAMA: JEPRET & UPLOAD KE NODE.JS
   Future<void> _captureAndUpload({bool fromGallery = false}) async {
     if (!fromGallery && (!_isCameraInitialized || _cameraController == null)) return;
 
